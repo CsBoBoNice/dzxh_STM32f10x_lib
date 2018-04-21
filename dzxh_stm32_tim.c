@@ -1,5 +1,5 @@
 #include "dzxh_stm32_tim.h"
-
+#include "include.h"
 /*******使用方法**************************************************************/
 /*
 @例:	TIM_Common_Init(5,7200,10000,TIM_CounterMode_Up,0,1);	//定时器初始化
@@ -48,15 +48,16 @@ TIM_Common_Init(u8 TIMx,u16 TIM_prescaler,u16 TIM_period,uint16_t TIM_CounterMod
 //两个中断同时到达，内核就会首先响应响应优先级高的
 
 /***中断函数**********************************************************************/
-//超时标志 1未超时 0超时
-int tim2_ready_buf_ok=1;
+
 
 void TIM2_IRQHandler(void)
 { 
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
     {	
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update); /* 清除溢出中断标志 */
-		tim2_ready_buf_ok=0;
+		#if defined (USING_USART1) || defined (USING_USART2) || defined (USING_USART3)|| defined (USING_UART4)|| defined (USING_UART5)
+		USART_ReceiveOvertimeProcess();
+		#endif
     }
 	
 }

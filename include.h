@@ -16,4 +16,9 @@
 #include "dzxh_stm32_systick.h"
 #include "dzxh_stm32_nvic.h"
 
+#define OK 1
+#define ERROR 0
+#define TRUE 1
+#define FSLSE 0
+
 #endif

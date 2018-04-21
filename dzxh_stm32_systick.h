@@ -8,7 +8,7 @@
 #endif
 
 //定义进入滴答中断 SysTick_Handler 时间(ms)
-#define SYSTEMTICK_PERIOD_MS  1/configTICK_RATE_HZ
+#define SYSTEMTICK_PERIOD_MS  1000*1/configTICK_RATE_HZ
 
 void SysTick_delay_init(void);
 void SysTick_delay_ms(u16 nms);

@@ -12,7 +12,7 @@
 					UART5
 		²ÎÊý2£ºunsigned char ÐÍÊý¾Ý
 		
-@Àý:	USART_SendChars(USART1,USART1_ready_buf,USART1_ready_buf_len);;	//·¢ËÍÒ»¶ÎÊý¾Ý
+@Àý:	USART_SendChars(USART1,USART1_ready_buf,USART1_ready_buf_len);	//·¢ËÍÒ»¶ÎÊý¾Ý
 
 		²ÎÊý1£ºUSART_TypeDef* ÐÍ
 					USART1
@@ -112,7 +112,7 @@ void USART3_IRQHandler(void)
 ÒÔÏÂÊÇÊ¹ÓÃ´ø³¬Ê±µÄ´®¿Ú½ÓÊÕ´úÂë
 
 NVIC_Configuration();//ÉèÖÃÓÅÏÈ¼¶·Ö×é£ºÇÀ¶ÏÓÅÏÈ¼¶ºÍÏàÓ¦ÓÅÏÈ¼¶
-SysTickInit();//³õÊ¼»¯SysTick¶¨Ê±Æ÷ÖÐ¶Ï SYSTEMTICK_PERIOD_MS½øÈëÖÐ¶ÏÊ±¼ä
+SysTick_delay_init();	//³õÊ¼»¯SysTick¶¨Ê±Æ÷ÖÐ¶Ï Ã¿1/configTICK_RATE_HZÃëÖÐ¶ÏÒ»´Î
 USART_init(1,115200,0,3,0);	//´®¿Ú³õÊ¼»¯
 
 if(USART1_ready_buf_ok)	//ÅÐ¶Ï³¬Ê±£¬Ò»Ö¡Êý¾Ý½ÓÊÕ³É¹¦
@@ -129,11 +129,12 @@ USART1_ready_buf_len ½ÓÊÕÊý¾Ý³¤¶È
 USART_TypeDef* USART_printf;
 
 #ifdef USING_USART1
-uint8_t USART1_receive_buf[USART1_BUF_SIZE],USART1_ready_buf[USART1_BUF_SIZE];
-static int32_t USART1_ReceiveTimeCounter = 0;
-__IO uint16_t USART1_receive_index=0; 
-__IO uint8_t USART1_ready_buf_ok = 0;
-__IO uint16_t USART1_ready_buf_len = 0;
+uint8_t USART1_receive_buf[USART1_BUF_SIZE];	//Êý¾Ý½ÓÊÕ»º´æÇø
+uint8_t USART1_ready_buf[USART1_BUF_SIZE];		//½ÓÊÕ³É¹¦ºóµÄÊý¾ÝÇø
+static int32_t USART1_ReceiveTimeCounter = 0;	//³¬Ê±Ê£ÓàÊ±¼ä
+__IO uint16_t USART1_receive_index=0; 		//ÕýÔÚ½ÓÊÕµÄÊý¾Ý³¤¶È
+__IO uint8_t USART1_ready_buf_ok = 0;		//ÊÇ·ñ³É¹¦½ÓÊÕ
+__IO uint16_t USART1_ready_buf_len = 0;		//³É¹¦½ÓÊÕºóµÄÊý¾Ý³¤¶È
 #endif
 
 #ifdef USING_USART2
@@ -807,7 +808,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 //	}	
 //}
 
-
+//·¢ËÍÒ»¸ö×Ö½Ú
 void USART_SendByte(USART_TypeDef* USARTx,uint8_t SendByte)	//·¢ËÍÒ»¸ö×Ö½Ú
 {
 
@@ -815,7 +816,7 @@ void USART_SendByte(USART_TypeDef* USARTx,uint8_t SendByte)	//·¢ËÍÒ»¸ö×Ö½Ú
   		/* Loop until the end of transmission */
 		while (USART_GetFlagStatus(USARTx, USART_FLAG_TC) == RESET);
 }
-
+//·¢ËÍÒ»´®Êý¾Ý
 void USART_SendChars(USART_TypeDef* USARTx,const uint8_t* SendChars,uint16_t len)	//·¢ËÍÒ»´®Êý¾Ý
 {
 	uint16_t i = 0;
@@ -826,23 +827,34 @@ void USART_SendChars(USART_TypeDef* USARTx,const uint8_t* SendChars,uint16_t len
 	}
 }
 
+//USART·¢ËÍ×Ö·û´®
+void UART_SendString(USART_TypeDef* USARTx,char* s)
+{
+	while(*s)//¼ì²â×Ö·û´®½áÊø·û
+	{
+		while(USART_GetFlagStatus(USARTx, USART_FLAG_TC)==RESET); 
+		USART_SendData(USARTx ,*s++);//·¢ËÍµ±Ç°×Ö·û
+	}
+}
+
+//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂë
 void USART_ReceiveOvertimeProcess(void)		//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂë
 {
 	uint16_t i = 0;	
 
 	#ifdef USING_USART1
-	if(USART1_ReceiveTimeCounter>=SYSTEMTICK_PERIOD_MS)
+	if(USART1_ReceiveTimeCounter>=USART_PERIOD_MS)
 	{
-		USART1_ReceiveTimeCounter -= SYSTEMTICK_PERIOD_MS;
+		USART1_ReceiveTimeCounter -= USART_PERIOD_MS;
 
-		if(USART1_ReceiveTimeCounter<SYSTEMTICK_PERIOD_MS)
+		if(USART1_ReceiveTimeCounter<USART_PERIOD_MS)
 		{
 			USART1_ready_buf_len = USART1_receive_index;
 
 			for(i = 0;i <= USART1_ready_buf_len; i ++)
 				USART1_ready_buf[i] = USART1_receive_buf[i];
 	
-			USART1_ready_buf_ok = 1;
+			USART1_ready_buf_ok = UART_OK;
 			USART1_receive_index=0;
 			USART1_ReceiveTimeCounter = 0;
 		}
@@ -850,18 +862,18 @@ void USART_ReceiveOvertimeProcess(void)		//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂ
 	#endif
 
 	#ifdef USING_USART2
-	if(USART2_ReceiveTimeCounter>=SYSTEMTICK_PERIOD_MS)
+	if(USART2_ReceiveTimeCounter>=USART_PERIOD_MS)
 	{
-		USART2_ReceiveTimeCounter -= SYSTEMTICK_PERIOD_MS;
+		USART2_ReceiveTimeCounter -= USART_PERIOD_MS;
 
-		if(USART2_ReceiveTimeCounter<SYSTEMTICK_PERIOD_MS)
+		if(USART2_ReceiveTimeCounter<USART_PERIOD_MS)
 		{
 			USART2_ready_buf_len = USART2_receive_index;
 
 			for(i = 0;i <= USART2_ready_buf_len; i ++)
 				USART2_ready_buf[i] = USART2_receive_buf[i];
 	
-			USART2_ready_buf_ok = 1;
+			USART2_ready_buf_ok = UART_OK;
 			USART2_receive_index=0;
 			USART2_ReceiveTimeCounter = 0;
 		}
@@ -869,18 +881,18 @@ void USART_ReceiveOvertimeProcess(void)		//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂ
 	#endif
 
 	#ifdef USING_USART3
-	if(USART3_ReceiveTimeCounter>=SYSTEMTICK_PERIOD_MS)
+	if(USART3_ReceiveTimeCounter>=USART_PERIOD_MS)
 	{
-		USART3_ReceiveTimeCounter -= SYSTEMTICK_PERIOD_MS;
+		USART3_ReceiveTimeCounter -= USART_PERIOD_MS;
 
-		if(USART3_ReceiveTimeCounter<SYSTEMTICK_PERIOD_MS)
+		if(USART3_ReceiveTimeCounter<USART_PERIOD_MS)
 		{
 			USART3_ready_buf_len = USART3_receive_index;
 
 			for(i = 0;i <= USART3_ready_buf_len; i ++)
 				USART3_ready_buf[i] = USART3_receive_buf[i];
 	
-			USART3_ready_buf_ok = 1;
+			USART3_ready_buf_ok = UART_OK;
 			USART3_receive_index=0;
 			USART3_ReceiveTimeCounter = 0;
 		}
@@ -888,18 +900,18 @@ void USART_ReceiveOvertimeProcess(void)		//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂ
 	#endif
 
 	#ifdef USING_UART4
-	if(UART4_ReceiveTimeCounter>=SYSTEMTICK_PERIOD_MS)
+	if(UART4_ReceiveTimeCounter>=USART_PERIOD_MS)
 	{
-		UART4_ReceiveTimeCounter -= SYSTEMTICK_PERIOD_MS;
+		UART4_ReceiveTimeCounter -= USART_PERIOD_MS;
 
-		if(UART4_ReceiveTimeCounter<SYSTEMTICK_PERIOD_MS)
+		if(UART4_ReceiveTimeCounter<USART_PERIOD_MS)
 		{
 			UART4_ready_buf_len = UART4_receive_index;
 
 			for(i = 0;i <= UART4_ready_buf_len; i ++)
 				UART4_ready_buf[i] = UART4_receive_buf[i];
 	
-			UART4_ready_buf_ok = 1;
+			UART4_ready_buf_ok = UART_OK;
 			UART4_receive_index=0;
 			UART4_ReceiveTimeCounter = 0;
 		}
@@ -907,18 +919,18 @@ void USART_ReceiveOvertimeProcess(void)		//ÔÚµÎ´ðÖÐ¶Ï SysTick_HandlerÖÐÖ´ÐÐµÄ´úÂ
 	#endif
 
 	#ifdef USING_UART5
-	if(UART5_ReceiveTimeCounter>=SYSTEMTICK_PERIOD_MS)
+	if(UART5_ReceiveTimeCounter>=USART_PERIOD_MS)
 	{
-		UART5_ReceiveTimeCounter -= SYSTEMTICK_PERIOD_MS;
+		UART5_ReceiveTimeCounter -= USART_PERIOD_MS;
 
-		if(UART5_ReceiveTimeCounter<SYSTEMTICK_PERIOD_MS)
+		if(UART5_ReceiveTimeCounter<USART_PERIOD_MS)
 		{
 			UART5_ready_buf_len = UART5_receive_index;
 
 			for(i = 0;i <= UART5_ready_buf_len; i ++)
 				UART5_ready_buf[i] = UART5_receive_buf[i];
 	
-			UART5_ready_buf_ok = 1;
+			UART5_ready_buf_ok = UART_OK;
 			UART5_receive_index=0;
 			UART5_ReceiveTimeCounter = 0;
 		}
@@ -982,6 +994,114 @@ int fgetc(FILE *fp)
 		return (int)USART_ReceiveData(USART_printf);
 }
 /******************************************************************************************************************/
+
+//ÅÐ¶Ï´®¿ÚÊÇ·ñ½ÓÊÕÍê±Ï
+//½ÓÊÕ³É¹¦·µ»Ø UART_OK
+//½ÓÊÕÊ§°Ü·µ»Ø UART_ERROR
+int Get_USART_ready_buf_ok(USART_TypeDef * usart)
+{
+#ifdef USING_USART1
+	if(usart==USART1)return USART1_ready_buf_ok;
+#endif	
+	
+#ifdef USING_USART2
+	else if(usart==USART2)return USART2_ready_buf_ok;
+#endif
+
+#ifdef USING_USART3
+	else if(usart==USART3)return USART3_ready_buf_ok;
+#endif
+	
+#ifdef USING_UART4
+	else if(usart==UART4)return UART4_ready_buf_ok;
+#endif	
+	
+#ifdef USING_UART5
+	else if(usart==UART5)return UART5_ready_buf_ok;
+#endif			
+	return UART_ERROR;
+}
+
+//Çå³ý´®¿ÚÊÇ·ñ½ÓÊÕÍê±Ï±êÖ¾
+void Clean_USART_ready_buf_OK(USART_TypeDef * usart)
+{
+#ifdef USING_USART1
+	if(usart==USART1)
+	{
+		USART1_ready_buf_ok=UART_ERROR;
+	}
+#endif	
+	
+#ifdef USING_USART2
+	else if(usart==USART2)
+	{
+		USART2_ready_buf_ok=UART_ERROR;
+	}
+#endif
+
+#ifdef USING_USART3
+	else if(usart==USART3)
+	{
+		USART3_ready_buf_ok=UART_ERROR;
+	}		
+#endif
+	
+#ifdef USING_UART4
+	else if(usart==UART4)
+	{
+		UART4_ready_buf_ok=UART_ERROR;
+	}		
+#endif	
+	
+#ifdef USING_UART5
+	else if(usart==UART5)
+	{
+		UART5_ready_buf_ok=UART_ERROR;
+	}
+#endif			
+
+}
+
+//Çå³ý´®¿Ú»º´æÊý¾Ý
+void Clean_USART_ready_buf(USART_TypeDef * usart)
+{
+#ifdef USING_USART1
+	if(usart==USART1)
+	{
+		memset(USART1_ready_buf,0,USART1_BUF_SIZE);
+	}
+#endif	
+	
+#ifdef USING_USART2
+	else if(usart==USART2)
+	{
+		memset(USART2_ready_buf,0,USART2_BUF_SIZE);
+	}
+#endif
+
+#ifdef USING_USART3
+	else if(usart==USART3)
+	{
+		memset(USART3_ready_buf,0,USART3_BUF_SIZE);
+	}		
+#endif
+	
+#ifdef USING_UART4
+	else if(usart==UART4)
+	{
+		memset(UART4_ready_buf,0,UART4_BUF_SIZE);
+	}		
+#endif	
+	
+#ifdef USING_UART5
+	else if(usart==UART5)
+	{
+		memset(UART5_ready_buf,0,UART5_BUF_SIZE);
+	}
+#endif			
+
+}
+
 
 /*
   * log:
