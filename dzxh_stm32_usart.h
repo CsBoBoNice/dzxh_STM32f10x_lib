@@ -8,7 +8,7 @@
 		
 #define USART_PERIOD_MS	1	//串口使用的定时器进入中断的时间单位MS
 
-#define USING_USART1	//不适用可注释,节省RAM
+//#define USING_USART1	//不适用可注释,节省RAM
 #define USING_USART2
 //#define USING_USART3
 //#define USING_UART4
@@ -74,9 +74,6 @@ void UART5_ISR(void);
 /******************************API************************************************/
 
 void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPriority,u8 remap_usart);//串口初始化
-//void USART_Putc(unsigned char c);	//发送一个字符串
-//void USART_Puts(unsigned char *str,int num);   //发送num个数据
-//void Change_printf(USART_TypeDef* USART_prt);//重定向串口选择
 
 void USART1_ISR(void); //串口中断函数
 void USART2_ISR(void); //串口中断函数
@@ -84,13 +81,16 @@ void USART3_ISR(void); //串口中断函数
 void USART4_ISR(void); //串口中断函数
 void USART5_ISR(void); //串口中断函数
 
+void Change_printf(USART_TypeDef* USART_prt);//重定向串口选择
 void USART_SendByte(USART_TypeDef* USARTx,uint8_t SendByte);	//发送一个字节
 void USART_SendChars(USART_TypeDef* USARTx,const uint8_t* SendChars,uint16_t len);	//发送一串数据
 void UART_SendString(USART_TypeDef* USARTx,char* s);	//USART发送字符串
+
 void USART_ReceiveOvertimeProcess(void);	//在滴答中断 SysTick_Handler中执行的代码
 
 int Get_USART_ready_buf_ok(USART_TypeDef * usart);	//判断串口是否接收完毕
 void Clean_USART_ready_buf_OK(USART_TypeDef * usart);	//清除串口是否接收完毕标志
 void Clean_USART_ready_buf(USART_TypeDef * usart); //清除串口缓存数据
+
 #endif
 

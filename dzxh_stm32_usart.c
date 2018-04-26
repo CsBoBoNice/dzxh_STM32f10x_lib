@@ -58,20 +58,15 @@ UART5		0 没重映像		PC12	PD2
 ************************************************************************
 @注:
 
-	接收串口数据通过中断接收，通过滴答中断 SysTick_Handler判断是否超时，
+	接收串口数据通过中断接收，通过定时器判断是否超时，
 在dzxh_stm32_usart.h里设置超时时间，与接收缓存区大小,如果未用到的串口可以注释，节约内存，
-由于需要滴答中断，所以需要初始化滴答中断
 
-	当然，如果不希望用滴答定时器可以改用TIM定时器,只需要在定时器中断函数中加上
-串口中断处理函数即可	USART_ReceiveOvertimeProcess();
+以下为定时器添加超时算法的代码:
 
-以下为滴答定时器添加超时算法的代码:
-void SysTick_Handler(void)
-{
-	#if defined (USING_USART1) || defined (USING_USART2) || defined (USING_USART3)|| defined (USING_UART4)|| defined (USING_UART5)
-	USART_ReceiveOvertimeProcess();
-	#endif
-}
+#if defined (USING_USART1) || defined (USING_USART2) || defined (USING_USART3)|| defined (USING_UART4)|| defined (USING_UART5)
+USART_ReceiveOvertimeProcess();
+#endif
+
 
 中断处理函数尽量写在 stm32f10x_it.c文件中:
 以下是使用超时处理的中断处理函数:
@@ -112,13 +107,16 @@ void USART3_IRQHandler(void)
 以下是使用带超时的串口接收代码
 
 NVIC_Configuration();//设置优先级分组：抢断优先级和相应优先级
-SysTick_delay_init();	//初始化SysTick定时器中断 每1/configTICK_RATE_HZ秒中断一次
+TIM_Common_Init(2,7200,10,TIM_CounterMode_Up,3,0);	//定时器初始化 1MS
 USART_init(1,115200,0,3,0);	//串口初始化
 
-if(USART1_ready_buf_ok)	//判断超时，一帧数据接收成功
+if(Get_USART_ready_buf_ok(USART1))	//判断超时，一帧数据接收成功
 {
+	Clean_USART_ready_buf_OK(USART1);//清除串口是否接收完毕标志
+	
 	USART_SendChars(USART1,USART1_ready_buf,USART1_ready_buf_len);	//回发
-	USART1_ready_buf_ok = 0;
+	
+	Clean_USART_ready_buf(USART1);//清除串口缓存数据
 }
 
 USART1_ready_buf 接收到的数据
@@ -787,26 +785,10 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 }
 #endif /* STM32F10X_CL */
 
-//void Change_printf(USART_TypeDef* USART_prt)//重定向串口选择
-//{
-//	USART_printf=USART_prt;
-//}
-
-//void USART_Putc(unsigned char c)  //发送一个字符串
-//{  
-//    USART_SendData(USART_printf, c);  
-//    while(USART_GetFlagStatus(USART_printf, USART_FLAG_TXE) == RESET );  /* 循环，直到传输结束 */
-//}
-
-//void USART_Puts(unsigned char *str,int num)  //发送一串数据
-//{  
-//	int i;
-//	for(i=0;i<num;i++)
-//	{
-//		USART_SendData(USART_printf,*str++);  
-//		while(USART_GetFlagStatus(USART_printf, USART_FLAG_TXE) == RESET);  /* 循环，直到传输结束 */
-//	}	
-//}
+void Change_printf(USART_TypeDef* USART_prt)//重定向串口选择
+{
+	USART_printf=USART_prt;
+}
 
 //发送一个字节
 void USART_SendByte(USART_TypeDef* USARTx,uint8_t SendByte)	//发送一个字节
@@ -1005,19 +987,19 @@ int Get_USART_ready_buf_ok(USART_TypeDef * usart)
 #endif	
 	
 #ifdef USING_USART2
-	else if(usart==USART2)return USART2_ready_buf_ok;
+	if(usart==USART2)return USART2_ready_buf_ok;
 #endif
 
 #ifdef USING_USART3
-	else if(usart==USART3)return USART3_ready_buf_ok;
+	if(usart==USART3)return USART3_ready_buf_ok;
 #endif
 	
 #ifdef USING_UART4
-	else if(usart==UART4)return UART4_ready_buf_ok;
+	if(usart==UART4)return UART4_ready_buf_ok;
 #endif	
 	
 #ifdef USING_UART5
-	else if(usart==UART5)return UART5_ready_buf_ok;
+	if(usart==UART5)return UART5_ready_buf_ok;
 #endif			
 	return UART_ERROR;
 }
@@ -1033,28 +1015,28 @@ void Clean_USART_ready_buf_OK(USART_TypeDef * usart)
 #endif	
 	
 #ifdef USING_USART2
-	else if(usart==USART2)
+	if(usart==USART2)
 	{
 		USART2_ready_buf_ok=UART_ERROR;
 	}
 #endif
 
 #ifdef USING_USART3
-	else if(usart==USART3)
+	if(usart==USART3)
 	{
 		USART3_ready_buf_ok=UART_ERROR;
 	}		
 #endif
 	
 #ifdef USING_UART4
-	else if(usart==UART4)
+	if(usart==UART4)
 	{
 		UART4_ready_buf_ok=UART_ERROR;
 	}		
 #endif	
 	
 #ifdef USING_UART5
-	else if(usart==UART5)
+	if(usart==UART5)
 	{
 		UART5_ready_buf_ok=UART_ERROR;
 	}
@@ -1073,28 +1055,28 @@ void Clean_USART_ready_buf(USART_TypeDef * usart)
 #endif	
 	
 #ifdef USING_USART2
-	else if(usart==USART2)
+	if(usart==USART2)
 	{
 		memset(USART2_ready_buf,0,USART2_BUF_SIZE);
 	}
 #endif
 
 #ifdef USING_USART3
-	else if(usart==USART3)
+	if(usart==USART3)
 	{
 		memset(USART3_ready_buf,0,USART3_BUF_SIZE);
 	}		
 #endif
 	
 #ifdef USING_UART4
-	else if(usart==UART4)
+	if(usart==UART4)
 	{
 		memset(UART4_ready_buf,0,UART4_BUF_SIZE);
 	}		
 #endif	
 	
 #ifdef USING_UART5
-	else if(usart==UART5)
+	if(usart==UART5)
 	{
 		memset(UART5_ready_buf,0,UART5_BUF_SIZE);
 	}

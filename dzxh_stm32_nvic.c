@@ -16,7 +16,7 @@
 //设置优先级分组：抢断优先级和相应优先级 (默认：4个抢断优先级，4个相应优先级)
 void NVIC_Configuration(void)
 { 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 }
 
 /*

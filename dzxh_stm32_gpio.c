@@ -10,8 +10,16 @@
 /*************************************************************************/
 /*
 @例:	GPIO_ResetBits(GPIOD,GPIO_Pin_2);	//引脚拉低
+
 @例:	GPIO_SetBits(GPIOD,GPIO_Pin_2);		//引脚置高
-@例:	GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0);	//获取引脚高低电平
+
+@例:	GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2)//读取指定端口管脚的输入	
+
+@例:	GPIO_ReadInputData(GPIOD)	//读取指定的 GPIO 端口输入
+
+@例:	GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_2)//读取指定端口管脚的输出
+
+@例:	GPIO_Write(GPIOD, 0x55)//向指定 GPIO 数据端口写入数据
 */
 /*************************************************************************/
 /*
