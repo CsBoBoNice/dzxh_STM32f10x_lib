@@ -68,42 +68,6 @@ USART_ReceiveOvertimeProcess();
 #endif
 
 
-中断处理函数尽量写在 stm32f10x_it.c文件中:
-以下是使用超时处理的中断处理函数:
-void USART1_IRQHandler(void)
-{
-	#ifdef USING_USART1
-	USART1_ISR();
-	#endif
-}
-
-void USART2_IRQHandler(void)
-{
-	#ifdef USING_USART2
-	USART2_ISR();
-	#endif
-}
-
-void USART3_IRQHandler(void)
-{
-	#ifdef USING_USART3
-	USART3_ISR();
-	#endif
-}
-//void UART4_IRQHandler(void)
-//{
-//	#ifdef USING_UART4
-//	UART4_ISR();
-//	#endif
-//}
-
-//void UART5_IRQHandler(void)
-//{
-//	#ifdef USING_UART5
-//	UART5_ISR();
-//	#endif
-//}
-
 以下是使用带超时的串口接收代码
 
 NVIC_Configuration();//设置优先级分组：抢断优先级和相应优先级
@@ -121,6 +85,49 @@ if(Get_USART_ready_buf_ok(USART1))	//判断超时，一帧数据接收成功
 
 USART1_ready_buf 接收到的数据
 USART1_ready_buf_len 接收数据长度
+
+中断处理函数尽量写在 stm32f10x_it.c文件中:
+以下是使用超时处理的中断处理函数:
+#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL		
+void USART1_IRQHandler(void)
+{
+	#ifdef USING_USART1
+	USART1_ISR();
+	#endif
+}
+
+void USART2_IRQHandler(void)
+{
+	#ifdef USING_USART2
+	USART2_ISR();
+	#endif
+}
+#endif
+
+#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL					
+void USART3_IRQHandler(void)
+{
+	#ifdef USING_USART3
+	USART3_ISR();
+	#endif
+}
+#endif
+
+#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
+void UART4_IRQHandler(void)
+{
+	#ifdef USING_UART4
+	UART4_ISR();
+	#endif
+}
+
+void UART5_IRQHandler(void)
+{
+	#ifdef USING_UART5
+	UART5_ISR();
+	#endif
+}
+#endif
 
 */
 /******************************************************************************************************************/
@@ -168,7 +175,46 @@ __IO uint16_t UART5_ready_buf_len=0;
 #endif
 
 /**********************中断函数***************************************************************************************************/
+#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL		
+void USART1_IRQHandler(void)
+{
+	#ifdef USING_USART1
+	USART1_ISR();
+	#endif
+}
 
+void USART2_IRQHandler(void)
+{
+	#ifdef USING_USART2
+	USART2_ISR();
+	#endif
+}
+#endif
+
+#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL					
+void USART3_IRQHandler(void)
+{
+	#ifdef USING_USART3
+	USART3_ISR();
+	#endif
+}
+#endif
+
+#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
+void UART4_IRQHandler(void)
+{
+	#ifdef USING_UART4
+	UART4_ISR();
+	#endif
+}
+
+void UART5_IRQHandler(void)
+{
+	#ifdef USING_UART5
+	UART5_ISR();
+	#endif
+}
+#endif
 /**********************串口1中断接收一个字符***************************************************************************************************/
 /*
 在中断服务程序中，由于主机响应中断时并不知道是哪个中断源发出中断请求，
@@ -278,7 +324,6 @@ void USART5_ISR(void)
 
 /****************************************************************************************************************************************/
 
-#ifdef STM32F10X_MD
 void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPriority,u8 remap_usart)
 {
 	u16 GPIO_Pin_Tx;
@@ -296,6 +341,8 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 	{
 		switch(USARTx)
 		{
+
+				#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL		
 				case 1:
 							USARTy=USART1;
 							GPIOy=GPIOA;
@@ -313,6 +360,9 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							USART_printf=USART2;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
+				#endif
+				
+				#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL					
 				case 3:
 							USARTy=USART3;
 							GPIOy=GPIOB;
@@ -322,153 +372,9 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							USART_printf=USART3;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
-		}
+				#endif
 
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);
-	}
-
-	if(remap_usart==1)
-	{
-		switch(USARTx)
-		{
-				case 1:
-							GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);//USART1 复用功能映射
-							USARTy=USART1;
-							GPIOy=GPIOB;
-							USART_IRQChannelx=USART1_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_6;
-							GPIO_Pin_Rx=GPIO_Pin_7;
-							USART_printf=USART1;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1|RCC_APB2Periph_GPIOB, ENABLE);break;
-				case 2:
-							GPIO_PinRemapConfig(GPIO_Remap_USART2, ENABLE);//USART2 复用功能映射				
-							USARTy=USART2;
-							GPIOy=GPIOD;
-							USART_IRQChannelx=USART2_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_5;
-							GPIO_Pin_Rx=GPIO_Pin_6;
-							USART_printf=USART2;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
-				case 3:
-							GPIO_PinRemapConfig(GPIO_PartialRemap_USART3, ENABLE);	//USART3 复用功能部分映射
-							USARTy=USART3;
-							GPIOy=GPIOC;
-							USART_IRQChannelx=USART3_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_10;
-							GPIO_Pin_Rx=GPIO_Pin_11;
-							USART_printf=USART3;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
-		}
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);
-	}		
-
-	if(remap_usart==2)
-	{
-		GPIO_PinRemapConfig(GPIO_FullRemap_USART3, ENABLE);//USART3 复用功能部分映射
-		USARTy=USART3;
-		GPIOy=GPIOD;
-		USART_IRQChannelx=USART3_IRQn;
-		GPIO_Pin_Tx=GPIO_Pin_8;
-		GPIO_Pin_Rx=GPIO_Pin_9;
-		USART_printf=USART3;
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
-
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-		GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-		GPIO_Init(GPIOy, &GPIO_InitStructure);
-	}	
-		
-	USART_InitStructure.USART_BaudRate = BaudRate;		//串口的波特率
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;		//数据字长度(8位或9位)
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;			//可配置的停止位-支持1或2个停止位
-	USART_InitStructure.USART_Parity = USART_Parity_No ;			//无奇偶校验
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件流控制
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//双工模式，使能发送和接收
-	USART_Init(USARTy, &USART_InitStructure);		/* 根据传入的参数初始化STM32的USART配置 */
-	 
-	/* 如下语句解决第1个字节无法正确发送出去的问题 */
-	USART_ClearFlag(USARTy, USART_FLAG_TC);     // 清标志 
-	USART_ITConfig(USARTy,USART_IT_RXNE,ENABLE); //开启接受中断，必须要在开启串口前
-	
-	USART_Cmd(USARTy, ENABLE);/* 使能STM32的USART功能模块 */
-
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//4个抢断优先级，4个相应优先级
-	
-	NVIC_InitStructure.NVIC_IRQChannel = USART_IRQChannelx;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=PreemptionPriority ;//抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = SubPriority;		//子优先级
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
-	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器  
-	USART_ITConfig(USARTy, USART_IT_RXNE, ENABLE);//开启中断
-}
-#endif /* STM32F10X_MD */
-
-#ifdef STM32F10X_HD
-void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPriority,u8 remap_usart)
-{
-	u16 GPIO_Pin_Tx;
-	u16 GPIO_Pin_Rx;
-	u8  USART_IRQChannelx;
-	USART_TypeDef* USARTy;
-	GPIO_TypeDef*  GPIOy;
-	GPIO_InitTypeDef GPIO_InitStructure;
-	USART_InitTypeDef USART_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
-	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-	if(remap_usart==0)
-	{
-		switch(USARTx)
-		{
-				case 1:
-							USARTy=USART1;
-							GPIOy=GPIOA;
-							USART_IRQChannelx=USART1_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_9;
-							GPIO_Pin_Rx=GPIO_Pin_10;
-							USART_printf=USART1;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1|RCC_APB2Periph_GPIOA, ENABLE);break;
-				case 2:
-							USARTy=USART2;
-							GPIOy=GPIOA;
-							USART_IRQChannelx=USART2_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_2;
-							GPIO_Pin_Rx=GPIO_Pin_3;
-							USART_printf=USART2;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
-				case 3:
-							USARTy=USART3;
-							GPIOy=GPIOB;
-							USART_IRQChannelx=USART3_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_10;
-							GPIO_Pin_Rx=GPIO_Pin_11;
-							USART_printf=USART3;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
+				#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL									
 				case 4:
 							USARTy=UART4;
 							GPIOy=GPIOC;
@@ -477,7 +383,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							GPIO_Pin_Rx=GPIO_Pin_11;
 							USART_printf=UART4;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);break;
+							RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);break;			
 				case 5:
 							USARTy=UART5;
 							USART_IRQChannelx=UART5_IRQn;
@@ -486,11 +392,11 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							USART_printf=UART5;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD, ENABLE);
 							RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE);break;
+				#endif
 		}
 
 		if(USARTx!=5)
 		{
-
 				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
 				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 				GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -500,6 +406,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 				GPIO_Init(GPIOy, &GPIO_InitStructure);
 		}
+		#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
 		else
 		{
 				/* Configure USART5 Tx (PC.12) as alternate function push-pull */
@@ -512,12 +419,14 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 				GPIO_Init(GPIOD, &GPIO_InitStructure);
 		}
+		#endif
 	}
 
 	if(remap_usart==1)
 	{
 		switch(USARTx)
 		{
+				#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL		
 				case 1:
 							GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);//USART1 复用功能映射
 							USARTy=USART1;
@@ -537,6 +446,9 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							USART_printf=USART2;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
 							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
+				#endif
+				
+				#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL					
 				case 3:
 							GPIO_PinRemapConfig(GPIO_PartialRemap_USART3, ENABLE);	//USART3 复用功能部分映射
 							USARTy=USART3;
@@ -547,6 +459,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 							USART_printf=USART3;
 							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
+				#endif
 		}
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -557,7 +470,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 			GPIO_Init(GPIOy, &GPIO_InitStructure);
 	}		
-
+	#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL					
 	if(remap_usart==2)
 	{
 		GPIO_PinRemapConfig(GPIO_FullRemap_USART3, ENABLE);//USART3 复用功能部分映射
@@ -579,7 +492,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 		GPIO_Init(GPIOy, &GPIO_InitStructure);
 	}	
-		
+	#endif	
 	USART_InitStructure.USART_BaudRate = BaudRate;		//串口的波特率
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;		//数据字长度(8位或9位)
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;			//可配置的停止位-支持1或2个停止位
@@ -603,187 +516,7 @@ void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPri
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器  
 	USART_ITConfig(USARTy, USART_IT_RXNE, ENABLE);//开启中断
 }
-#endif /* STM32F10X_HD */
 
-#ifdef STM32F10X_CL
-void USART_init(u8 USARTx,u32 BaudRate,uint8_t PreemptionPriority,uint8_t SubPriority,u8 remap_usart)
-{
-	u16 GPIO_Pin_Tx;
-	u16 GPIO_Pin_Rx;
-	u8  USART_IRQChannelx;
-	USART_TypeDef* USARTy;
-	GPIO_TypeDef*  GPIOy;
-	GPIO_InitTypeDef GPIO_InitStructure;
-	USART_InitTypeDef USART_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
-	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-	if(remap_usart==0)
-	{
-		switch(USARTx)
-		{
-				case 1:
-							USARTy=USART1;
-							GPIOy=GPIOA;
-							USART_IRQChannelx=USART1_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_9;
-							GPIO_Pin_Rx=GPIO_Pin_10;
-							USART_printf=USART1;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1|RCC_APB2Periph_GPIOA, ENABLE);break;
-				case 2:
-							USARTy=USART2;
-							GPIOy=GPIOA;
-							USART_IRQChannelx=USART2_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_2;
-							GPIO_Pin_Rx=GPIO_Pin_3;
-							USART_printf=USART2;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
-				case 3:
-							USARTy=USART3;
-							GPIOy=GPIOB;
-							USART_IRQChannelx=USART3_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_10;
-							GPIO_Pin_Rx=GPIO_Pin_11;
-							USART_printf=USART3;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
-				case 4:
-							USARTy=UART4;
-							GPIOy=GPIOC;
-							USART_IRQChannelx=UART4_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_10;
-							GPIO_Pin_Rx=GPIO_Pin_11;
-							USART_printf=UART4;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);break;
-				case 5:
-							USARTy=UART5;
-							USART_IRQChannelx=UART5_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_12;
-							GPIO_Pin_Rx=GPIO_Pin_2;
-							USART_printf=UART5;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE);break;
-		}
-
-		if(USARTx!=5)
-		{
-
-				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-				GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-				GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-				GPIO_Init(GPIOy, &GPIO_InitStructure);
-		}
-		else
-		{
-				/* Configure USART5 Tx (PC.12) as alternate function push-pull */
-				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-				GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-				GPIO_Init(GPIOC, &GPIO_InitStructure);    
-				/* Configure USART5 Rx (PD.2) as input floating */
-				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-				GPIO_Init(GPIOD, &GPIO_InitStructure);
-		}
-	}
-
-	if(remap_usart==1)
-	{
-		switch(USARTx)
-		{
-				case 1:
-							GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);//USART1 复用功能映射
-							USARTy=USART1;
-							GPIOy=GPIOB;
-							USART_IRQChannelx=USART1_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_6;
-							GPIO_Pin_Rx=GPIO_Pin_7;
-							USART_printf=USART1;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1|RCC_APB2Periph_GPIOB, ENABLE);break;
-				case 2:
-							GPIO_PinRemapConfig(GPIO_Remap_USART2, ENABLE);//USART2 复用功能映射				
-							USARTy=USART2;
-							GPIOy=GPIOD;
-							USART_IRQChannelx=USART2_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_5;
-							GPIO_Pin_Rx=GPIO_Pin_6;
-							USART_printf=USART2;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);break;
-				case 3:
-							GPIO_PinRemapConfig(GPIO_PartialRemap_USART3, ENABLE);	//USART3 复用功能部分映射
-							USARTy=USART3;
-							GPIOy=GPIOC;
-							USART_IRQChannelx=USART3_IRQn;
-							GPIO_Pin_Tx=GPIO_Pin_10;
-							GPIO_Pin_Rx=GPIO_Pin_11;
-							USART_printf=USART3;
-							RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-							RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);break;
-		}
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-			GPIO_Init(GPIOy, &GPIO_InitStructure);
-	}		
-
-	if(remap_usart==2)
-	{
-		GPIO_PinRemapConfig(GPIO_FullRemap_USART3, ENABLE);//USART3 复用功能部分映射
-		USARTy=USART3;
-		GPIOy=GPIOD;
-		USART_IRQChannelx=USART3_IRQn;
-		GPIO_Pin_Tx=GPIO_Pin_8;
-		GPIO_Pin_Rx=GPIO_Pin_9;
-		USART_printf=USART3;
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
-
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Tx;
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-		GPIO_Init(GPIOy, &GPIO_InitStructure);    
-
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_Rx;
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-		GPIO_Init(GPIOy, &GPIO_InitStructure);
-	}	
-		
-	USART_InitStructure.USART_BaudRate = BaudRate;		//串口的波特率
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;		//数据字长度(8位或9位)
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;			//可配置的停止位-支持1或2个停止位
-	USART_InitStructure.USART_Parity = USART_Parity_No ;			//无奇偶校验
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件流控制
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//双工模式，使能发送和接收
-	USART_Init(USARTy, &USART_InitStructure);		/* 根据传入的参数初始化STM32的USART配置 */
-	 
-	/* 如下语句解决第1个字节无法正确发送出去的问题 */
-	USART_ClearFlag(USARTy, USART_FLAG_TC);     // 清标志 
-	USART_ITConfig(USARTy,USART_IT_RXNE,ENABLE); //开启接受中断，必须要在开启串口前
-	
-	USART_Cmd(USARTy, ENABLE);/* 使能STM32的USART功能模块 */
-
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//4个抢断优先级，4个相应优先级
-	
-	NVIC_InitStructure.NVIC_IRQChannel = USART_IRQChannelx;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=PreemptionPriority ;//抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = SubPriority;		//子优先级
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
-	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器  
-	USART_ITConfig(USARTy, USART_IT_RXNE, ENABLE);//开启中断
-}
-#endif /* STM32F10X_CL */
 
 void Change_printf(USART_TypeDef* USART_prt)//重定向串口选择
 {
@@ -1087,6 +820,10 @@ void Clean_USART_ready_buf(USART_TypeDef * usart)
 
 /*
   * log:
+
+  *	2018年4月27日
+	优化条件编译，让代码适应STM32F10X全系列芯片
+	Programmer:陈述
 
   *	2018年4月15日
 	增加条件编译，未用到的串口不使用超时缓存区,减少内存占用

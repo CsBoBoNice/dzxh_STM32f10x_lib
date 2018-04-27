@@ -49,15 +49,15 @@ TIM_Common_Init(u8 TIMx,u16 TIM_prescaler,u16 TIM_period,uint16_t TIM_CounterMod
 
 /***中断函数**********************************************************************/
 
-
+#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
 void TIM2_IRQHandler(void)
 { 
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
     {	
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update); /* 清除溢出中断标志 */
-		#if defined (USING_USART1) || defined (USING_USART2) || defined (USING_USART3)|| defined (USING_UART4)|| defined (USING_UART5)
-		USART_ReceiveOvertimeProcess();
-		#endif
+//		#if defined (USING_USART1) || defined (USING_USART2) || defined (USING_USART3)|| defined (USING_UART4)|| defined (USING_UART5)
+//		USART_ReceiveOvertimeProcess();
+//		#endif
     }
 	
 }
@@ -68,22 +68,35 @@ void TIM3_IRQHandler(void)
 		TIM_ClearITPendingBit(TIM3,TIM_IT_Update); /* 清除溢出中断标志 */
     }	
 }
+#endif
+
+#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL	
 void TIM4_IRQHandler(void)
 {
 
 }
+#endif
+
+#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
 void TIM5_IRQHandler(void)
 {
 	
 }
+#endif
+
+#if STM32F10X_HD||STM32F10X_XL||STM32F10X_CL
 void TIM6_IRQHander(void)
 {
 
 }
+#endif
+
+#if STM32F10X_LD_VL||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL			
 void TIM7_IRQHander(void)
 {
     TIM_ClearITPendingBit(TIM7,TIM_IT_Update);/* 清除溢出中断标志 */
 }
+#endif
 
 /********************************************************************************/
 
@@ -101,7 +114,6 @@ TIM_TypeDef* get_tim(u8 TIMx)
 	return 0;
 }
 
-#ifdef STM32F10X_MD
 void time_nvic_init(u8 TIMx,uint8_t PreemptionPriority,uint8_t SubPriority)
 {
 	 
@@ -109,75 +121,39 @@ void time_nvic_init(u8 TIMx,uint8_t PreemptionPriority,uint8_t SubPriority)
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 
     switch(TIMx)
     {
+		#if STM32F10X_LD||STM32F10X_LD_VL||STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL
         case 2:NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn ;
                 RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);break;
         case 3:NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn ; 
                 RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);break;
-        case 4:NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);break;        
-    }
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = PreemptionPriority;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = SubPriority; 
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-}
-#endif /* STM32F10X_MD */
-
-#ifdef STM32F10X_HD
-void time_nvic_init(u8 TIMx,uint8_t PreemptionPriority,uint8_t SubPriority)
-{
-	 
-	NVIC_InitTypeDef NVIC_InitStructure; 
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 
-    switch(TIMx)
-    {
-        case 2:NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn ;
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);break;
-        case 3:NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);break;
+		#endif
+		
+		#if STM32F10X_MD||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL	
         case 4:NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn ; 
                 RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);break;
+		#endif
+		
+		#if STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL	
         case 5:NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn ; 
                 RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);break;
+		#endif
+		
+		#if STM32F10X_HD||STM32F10X_XL||STM32F10X_CL	
         case 6:NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn ; 
                 RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE);break;
+		#endif
+		
+		#if STM32F10X_LD_VL||STM32F10X_MD_VL||STM32F10X_HD||STM32F10X_HD_VL||STM32F10X_XL||STM32F10X_CL			
         case 7:NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn ;
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);break;        
+                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);break; 
+		#endif
     }
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = PreemptionPriority;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = SubPriority; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
 	NVIC_Init(&NVIC_InitStructure);
 }
-#endif /* STM32F10X_HD */ 
 
-#ifdef STM32F10X_CL	
-void time_nvic_init(u8 TIMx,uint8_t PreemptionPriority,uint8_t SubPriority)
-{
-	 
-	NVIC_InitTypeDef NVIC_InitStructure; 
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 
-    switch(TIMx)
-    {
-        case 2:NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn ;
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);break;
-        case 3:NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);break;
-        case 4:NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);break;
-        case 5:NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);break;
-        case 6:NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn ; 
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE);break;
-        case 7:NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn ;
-                RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);break;        
-    }
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = PreemptionPriority;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = SubPriority; 
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-}
-#endif /* STM32F10X_CL */ 
 
 u8 TIM_Common_Init(u8 TIMx,u16 TIM_prescaler,u16 TIM_period,uint16_t TIM_CounterMode,uint8_t PreemptionPriority,uint8_t SubPriority)
 //pwm初始化 （默认时钟分割为1，向上计数，TIM输出比较极性高，使能关）
@@ -224,6 +200,10 @@ void Tim_Cmd(u8 TIMx,u8 flag)
 }
 /*
   * log:
+
+  *	2018年4月27日
+	优化条件编译，让代码适应STM32F10X全系列芯片
+	Programmer:陈述
 
   *	2018年4月6日
 	修复了初始化定时器后马上进入一次定时器的问题
